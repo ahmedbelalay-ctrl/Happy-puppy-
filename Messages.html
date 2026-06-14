@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الرسائل - Happy Puppy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-gold: #D4A373; --dark-brown: #5C4033; --bg-color: #FEFAE0; }
+        body { margin: 0; font-family: 'Baloo Bhaijaan 2', sans-serif; background: var(--bg-color); color: var(--dark-brown); }
+        header { padding: 15px 5%; background: var(--dark-brown); color: white; display: flex; justify-content: space-between; }
+        header a { color: white; text-decoration: none; font-size: 1.5rem; }
+        .msg-container { max-width: 600px; margin: 30px auto; padding: 20px; }
+        .msg-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; border-right: 5px solid var(--primary-gold); }
+        .msg-title { font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; color: var(--dark-brown); }
+        .msg-text { font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" style="font-family: 'Fredoka', sans-serif;">Happy Puppy</a>
+        <a href="index.html"><i class="fas fa-arrow-left"></i></a>
+    </header>
+
+    <div class="msg-container">
+        <h2><i class="fas fa-envelope-open-text"></i> صندوق الرسائل</h2>
+        <div id="messagesList"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyAfzC42EeE2ByHR2un3EOLBR4dgunwD--A",
+          authDomain: "happy-puppy-7dbd0.firebaseapp.com",
+          projectId: "happy-puppy-7dbd0",
+          storageBucket: "happy-puppy-7dbd0.firebasestorage.app",
+          messagingSenderId: "597541800346",
+          appId: "1:597541800346:web:2b78105f6a23d9f6329223",
+          measurementId: "G-WHBSFQHTHW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const msgList = document.getElementById('messagesList');
+
+        const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            msgList.innerHTML = '';
+            if(snapshot.empty) {
+                msgList.innerHTML = '<p style="text-align:center;">لا يوجد رسائل حتى الآن.</p>';
+            }
+            snapshot.forEach((doc) => {
+                const msg = doc.data();
+                msgList.innerHTML += `
+                    <div class="msg-card">
+                        <div class="msg-title">بخصوص الإعلان: ${msg.petName || 'بدون اسم'}</div>
+                        <div class="msg-text">${msg.content}</div>
+                    </div>
+                `;
+            });
+        });
+    </script>
+</body>
+</html>
