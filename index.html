@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Puppy 🐾 - الرئيسية</title>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfzC42EeE2ByHR2un3EOLBR4dgunwD--A",
+            authDomain: "happy-puppy-7dbd0.firebaseapp.com",
+            projectId: "happy-puppy-7dbd0",
+            storageBucket: "happy-puppy-7dbd0.firebasestorage.app",
+            messagingSenderId: "597541800346",
+            appId: "1:597541800346:web:7a6528704fb86887329223",
+            measurementId: "G-3SLNR8H43F"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function loadPets() {
+            const container = document.getElementById('pets-container');
+            container.innerHTML = '<p class="empty-msg">جاري تحميل الأبطال... 🐾</p>';
+            try {
+                const querySnapshot = await getDocs(collection(db, "pets"));
+                container.innerHTML = '';
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<p class="empty-msg">مفيش حيوانات معروضة حالياً 🥺.. ضيف أول حيوان أليف!</p>';
+                    return;
+                }
+                querySnapshot.forEach((doc) => {
+                    const pet = doc.data();
+                    container.innerHTML += `
+                        <div class="card">
+                            <img src="${pet.image}">
+                            <div class="card-content">
+                                <h3>${pet.name} 💖</h3>
+                                <a href="details.html?id=${doc.id}" class="btn-adopt">اقرأ التفاصيل</a>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                container.innerHTML = '<p class="empty-msg">حدث خطأ في الاتصال بالسيرفر 😅</p>';
+            }
+        }
+        window.onload = loadPets;
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;700&family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-gold: #D4A373; --dark-brown: #5C4033; --medium-brown: #A98467; --bg-color: #FEFAE0; --card-bg: #FAEDCD; --white: #FFFFFF; }
+        body { margin: 0; padding: 0; font-family: 'Baloo Bhaijaan 2', sans-serif; background: linear-gradient(135deg, var(--bg-color), var(--card-bg)); color: var(--dark-brown); min-height: 100vh; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: linear-gradient(90deg, var(--primary-gold), var(--medium-brown)); color: var(--white); box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .menu-btn { font-size: 1.5rem; cursor: pointer; }
+        .logo { font-family: 'Baloo Bhaijaan 2', sans-serif; font-size: 1.8rem; text-decoration: none; color: var(--white); font-weight: 700; letter-spacing: 1px; }
+        .header-left { display: flex; gap: 20px; align-items: center; }
+        .account-btn { font-size: 1.5rem; cursor: pointer; color: var(--white); text-decoration: none; }
+        .sidebar { position: fixed; top: 0; right: -300px; width: 250px; height: 100vh; background: linear-gradient(180deg, var(--medium-brown), var(--dark-brown)); padding-top: 80px; transition: right 0.4s ease; z-index: 999; display: flex; flex-direction: column; }
+        .sidebar.active { right: 0; }
+        .sidebar a { display: flex; align-items: center; padding: 15px 25px; color: var(--bg-color); text-decoration: none; font-size: 1.2rem; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar a:hover { background: rgba(255,255,255,0.1); }
+        .sidebar a span { margin-left: 15px; font-size: 1.4rem; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 998; }
+        .overlay.active { display: block; }
+        .dev-info { margin-top: auto; padding: 20px; text-align: center; color: #E9EDC9; border-top: 1px solid rgba(255,255,255,0.2); }
+        main { padding: 40px 5%; }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .card { background: var(--white); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 25px rgba(92, 64, 51, 0.08); display: flex; flex-direction: column; border: 2px solid #F3E5D8; transition: transform 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+        .card img { width: 100%; height: 230px; object-fit: cover; border-bottom: 3px solid var(--primary-gold); }
+        .card-content { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
+        .btn-adopt { display: block; width: 100%; padding: 12px; text-align: center; background: linear-gradient(90deg, var(--primary-gold), var(--medium-brown)); color: var(--white); text-decoration: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; }
+        .empty-msg { text-align: center; width: 100%; font-size: 1.5rem; color: var(--medium-brown); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-right">
+            <i class="fas fa-bars menu-btn" id="menuToggle"></i>
+            <a href="index.html" class="logo">Happy Puppy 🐾</a>
+        </div>
+        <div class="header-left">
+            <a href="profile.html" class="account-btn"><i class="fas fa-user-circle"></i></a>
+        </div>
+    </header>
+    <div class="overlay" id="overlay"></div>
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html"><span>🏡</span> كل الحيوانات</a>
+        <a href="dogs.html"><span>🐶</span> كلاب للتبني</a>
+        <a href="cats.html"><span>🐱</span> قطط للتبني</a>
+        <a href="add.html"><span>✨</span> اعرض أليفك</a>
+        <a href="profile.html"><span>👤</span> حسابي الشخصي</a>
+        <div class="dev-info"><div style="font-weight: bold; font-size: 1.1rem;">Ahmed Diab</div></div>
+    </nav>
+    <main>
+        <div class="cards-grid" id="pets-container"></div>
+    </main>
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const menuToggle = document.getElementById('menuToggle');
+        menuToggle.addEventListener('click', () => { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); });
+        overlay.addEventListener('click', () => { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); });
+    </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حسابي - Happy Puppy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-gold: #D4A373; --dark-brown: #5C4033; --bg-color: #FEFAE0; }
+        body { margin: 0; font-family: 'Baloo Bhaijaan 2', sans-serif; background: var(--bg-color); color: var(--dark-brown); }
+        header { padding: 15px 5%; background: var(--dark-brown); color: white; display: flex; justify-content: space-between; align-items: center; }
+        header a { color: white; text-decoration: none; font-size: 1.5rem; }
+        .profile-container { max-width: 800px; margin: 30px auto; padding: 20px; }
+        .welcome-card { background: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .logout-btn { background: #ff4d4d; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; margin-top: 10px; }
+        .section-title { border-bottom: 3px solid var(--primary-gold); display: inline-block; padding-bottom: 5px; margin-bottom: 20px; }
+        .item-card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-right: 5px solid var(--primary-gold); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-delete { background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <header>
+        <a href="index.html" style="font-family: 'Fredoka', sans-serif;">Happy Puppy 🐾</a>
+        <a href="index.html"><i class="fas fa-arrow-left"></i></a>
+    </header>
+
+    <div class="profile-container">
+        <div class="welcome-card">
+            <h2>أهلاً بيك يا <span id="userNameDisplay"></span> 👑</h2>
+            <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
+        </div>
+
+        <h3 class="section-title">🐾 حيواناتي المعروضة للتبني</h3>
+        <div id="myPetsList"></div>
+
+        <h3 class="section-title" style="margin-top: 40px;">💌 رسائلي</h3>
+        <div id="myMessagesList"></div>
+    </div>
+
+    <script>
+        document.getElementById('userNameDisplay').innerText = currentUser.username;
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+
+        // عرض حيواناتي
+        let allPets = JSON.parse(localStorage.getItem('pets')) || [];
+        let myPets = allPets.filter(p => p.authorId === currentUser.id);
+        const myPetsList = document.getElementById('myPetsList');
+
+        if(myPets.length === 0) {
+            myPetsList.innerHTML = '<p>إنت لسه معندكش حيوانات معروضة للتبني.</p>';
+        } else {
+            myPets.reverse().forEach(pet => {
+                myPetsList.innerHTML += `
+                    <div class="item-card">
+                        <div>
+                            <strong>${pet.name}</strong> - ${pet.type}
+                        </div>
+                        <button class="btn-delete" onclick="deleteMyPet(${pet.id})"><i class="fas fa-trash"></i> حذف</button>
+                    </div>
+                `;
+            });
+        }
+
+        function deleteMyPet(id) {
+            if(confirm('متأكد عايز تحذف؟')) {
+                allPets = allPets.filter(p => p.id !== id);
+                localStorage.setItem('pets', JSON.stringify(allPets));
+                location.reload();
+            }
+        }
+
+        // عرض رسائلي (الرسايل اللي مبعوتة للحيوانات بتاعتي)
+        let allMessages = JSON.parse(localStorage.getItem('messages')) || [];
+        let myMessages = allMessages.filter(m => m.toUserId === currentUser.id);
+        const myMessagesList = document.getElementById('myMessagesList');
+
+        if(myMessages.length === 0) {
+            myMessagesList.innerHTML = '<p>مفيش رسائل جاتلك لسه.</p>';
+        } else {
+            myMessages.reverse().forEach(msg => {
+                myMessagesList.innerHTML += `
+                    <div class="item-card" style="display:block;">
+                        <div style="font-weight:bold; margin-bottom:5px;">بخصوص: ${msg.petName}</div>
+                        <div>${msg.content}</div>
+                    </div>
+                `;
+            });
+            // نصفر الإشعارات للمستخدم ده
+            allMessages.forEach(msg => { if(msg.toUserId === currentUser.id) msg.read = true; });
+            localStorage.setItem('messages', JSON.stringify(allMessages));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة أليف - Happy Puppy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfzC42EeE2ByHR2un3EOLBR4dgunwD--A",
+            authDomain: "happy-puppy-7dbd0.firebaseapp.com",
+            projectId: "happy-puppy-7dbd0",
+            storageBucket: "happy-puppy-7dbd0.firebasestorage.app",
+            messagingSenderId: "597541800346",
+            appId: "1:597541800346:web:7a6528704fb86887329223",
+            measurementId: "G-3SLNR8H43F"
+        };
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+
+        // الحماية عند تحميل الصفحة
+        if (!localStorage.getItem('currentUser')) {
+            alert("سجل الأول يا حبيبي عشان تقدر تعرض حيوانك للتبني! 😉🐾");
+            window.location.href = "login.html";
+        }
+    </script>
+
+    <style>
+        :root { --primary-gold: #D4A373; --dark-brown: #5C4033; --bg-color: #FEFAE0; }
+        body { margin: 0; font-family: 'Baloo Bhaijaan 2', sans-serif; background: var(--bg-color); color: var(--dark-brown); }
+        header { padding: 15px 5%; background: var(--dark-brown); color: white; display: flex; justify-content: space-between; }
+        header a { color: white; text-decoration: none; font-size: 1.5rem; }
+        .form-container { max-width: 500px; margin: 30px auto; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-control { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 10px; font-family: inherit; box-sizing: border-box; }
+        .submit-btn { width: 100%; padding: 15px; background: var(--primary-gold); color: white; border: none; border-radius: 10px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html">Happy Puppy 🐾</a>
+        <a href="index.html"><i class="fas fa-arrow-left"></i></a>
+    </header>
+
+    <div class="form-container">
+        <h2>اعرض أليفك للتبني ✨</h2>
+        <form id="addPetForm">
+            <div class="form-group"><label>الاسم</label><input type="text" id="petName" class="form-control" required></div>
+            <div class="form-group"><label>العمر</label><input type="text" id="petAge" class="form-control" required></div>
+            <div class="form-group"><label>النوع</label><select id="petType" class="form-control"><option value="كلب">كلب</option><option value="قطة">قطة</option></select></div>
+            <div class="form-group"><label>الجنس</label><select id="petGender" class="form-control"><option value="ذكر">ذكر</option><option value="أنثى">أنثى</option></select></div>
+            <div class="form-group"><label>المحافظة</label><input type="text" id="petLocation" class="form-control" required></div>
+            <div class="form-group"><label>التفاصيل</label><textarea id="petDetails" class="form-control" rows="4" required></textarea></div>
+            <div class="form-group"><label>الصورة</label><input type="file" id="petImage" class="form-control" accept="image/*" required></div>
+            <button type="submit" id="submitBtn" class="submit-btn">نشر الإعلان</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        document.getElementById('addPetForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // التأكد من تسجيل الدخول قبل النشر
+            if (!localStorage.getItem('currentUser')) {
+                alert("سجل الأول يا حبيبي!");
+                window.location.href = "login.html";
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "جاري النشر...";
+            btn.disabled = true;
+
+            const file = document.getElementById('petImage').files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function() {
+                try {
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                    const newPet = {
+                        authorId: currentUser.id,
+                        name: document.getElementById('petName').value,
+                        age: document.getElementById('petAge').value,
+                        type: document.getElementById('petType').value,
+                        gender: document.getElementById('petGender').value,
+                        location: document.getElementById('petLocation').value,
+                        details: document.getElementById('petDetails').value,
+                        image: reader.result,
+                        createdAt: new Date()
+                    };
+                    
+                    await addDoc(collection(window.db, "pets"), newPet);
+                    alert("تم نشر الإعلان بنجاح! 🐾");
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error("خطأ: ", error);
+                    alert("حدث خطأ، حاول مرة أخرى");
+                    btn.disabled = false;
+                    btn.innerText = "نشر الإعلان";
+                }
+            };
+            if (file) reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
