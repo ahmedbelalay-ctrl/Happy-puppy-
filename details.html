@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل الحيوان - Happy Puppy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-gold: #D4A373; --dark-brown: #5C4033; --bg-color: #FEFAE0; }
+        body { margin: 0; font-family: 'Baloo Bhaijaan 2', sans-serif; background: var(--bg-color); color: var(--dark-brown); }
+        header { padding: 15px 5%; background: var(--dark-brown); color: white; display: flex; justify-content: space-between; }
+        header a { color: white; text-decoration: none; font-size: 1.5rem; }
+        .details-container { max-width: 600px; margin: 30px auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .details-img { width: 100%; height: 350px; object-fit: cover; }
+        .content { padding: 20px; }
+        .pet-name { font-size: 2rem; margin: 0 0 10px 0; }
+        .tag { background: var(--bg-color); padding: 5px 15px; border-radius: 20px; font-weight: bold; margin-left: 10px; display: inline-block; margin-bottom: 10px;}
+        .msg-box { margin-top: 30px; border-top: 2px solid var(--bg-color); padding-top: 20px; }
+        textarea { width: 100%; padding: 10px; border-radius: 10px; border: 2px solid #ddd; font-family: inherit; box-sizing: border-box; margin-bottom: 10px; }
+        .send-btn { width: 100%; padding: 12px; background: var(--dark-brown); color: white; border: none; border-radius: 10px; font-size: 1.1rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" style="font-family: 'Fredoka', sans-serif;">Happy Puppy 🐾</a>
+        <a href="index.html"><i class="fas fa-arrow-left"></i></a>
+    </header>
+
+    <div class="details-container" id="petDetailsBlock">
+        <p style="text-align:center; padding:50px;">جاري تحميل التفاصيل... 🐾</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfzC42EeE2ByHR2un3EOLBR4dgunwD--A",
+            authDomain: "happy-puppy-7dbd0.firebaseapp.com",
+            projectId: "happy-puppy-7dbd0",
+            storageBucket: "happy-puppy-7dbd0.firebasestorage.app",
+            messagingSenderId: "597541800346",
+            appId: "1:597541800346:web:7a6528704fb86887329223"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const petId = urlParams.get('id');
+        let currentPet = null;
+
+        async function loadPetDetails() {
+            if (!petId) {
+                document.getElementById('petDetailsBlock').innerHTML = '<h3 style="text-align:center;">إعلان غير موجود.</h3>';
+                return;
+            }
+            
+            try {
+                const docRef = doc(db, "pets", petId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    currentPet = docSnap.data();
+                    document.getElementById('petDetailsBlock').innerHTML = `
+                        <img src="${currentPet.image}" class="details-img">
+                        <div class="content">
+                            <h1 class="pet-name">${currentPet.name} 💖</h1>
+                            <div class="tag"><i class="fas fa-paw"></i> ${currentPet.type}</div>
+                            <div class="tag"><i class="fas fa-venus-mars"></i> ${currentPet.gender}</div>
+                            <div class="tag"><i class="fas fa-calendar"></i> ${currentPet.age}</div>
+                            <p><strong><i class="fas fa-map-marker-alt"></i> الموقع:</strong> ${currentPet.location}</p>
+                            <p><strong>التفاصيل:</strong> ${currentPet.details}</p>
+                            <div class="msg-box">
+                                <h3>تواصل مع صاحب الإعلان 💌</h3>
+                                <textarea id="msgContent" rows="3" placeholder="اكتب رسالتك هنا..."></textarea>
+                                <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i> إرسال الرسالة</button>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('sendBtn').onclick = sendMessage;
+                } else {
+                    document.getElementById('petDetailsBlock').innerHTML = '<h3 style="text-align:center; padding:20px;">هذا الإعلان غير موجود.</h3>';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function sendMessage() {
+            const msgText = document.getElementById('msgContent').value;
+            if(msgText.trim() === "") { alert("اكتب رسالة أولاً!"); return; }
+            
+            try {
+                await addDoc(collection(db, "messages"), {
+                    petName: currentPet.name,
+                    content: msgText,
+                    createdAt: new Date(),
+                    read: false
+                });
+                alert("تم إرسال رسالتك بنجاح! 🎉");
+                document.getElementById('msgContent').value = "";
+            } catch (e) { alert("حدث خطأ في الإرسال"); }
+        }
+
+        loadPetDetails();
+    </script>
+</body>
+</html>
